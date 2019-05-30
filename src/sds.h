@@ -46,7 +46,8 @@ const char *SDS_NOINIT;
 typedef char *sds;
 
 /**
-*保存字符串对象的结构
+*_保存字符串对象的结构
+ 设置了5种SSD类型
 */
 
 /* Note: sdshdr5 is never used, we just access the flags byte directly.
@@ -74,9 +75,11 @@ struct __attribute__ ((__packed__)) sdshdr32 {
     char buf[];
 };
 struct __attribute__ ((__packed__)) sdshdr64 {
+    /*_记录buf数组中已使用字节的数量，等于SDS所保存的字符串长度*/
     uint64_t len; /* used */
     uint64_t alloc; /* excluding the header and null terminator */
     unsigned char flags; /* 3 lsb of type, 5 unused bits */
+    /*_字节数组,用于保存字符串*/
     char buf[];
 };
 
@@ -91,8 +94,12 @@ struct __attribute__ ((__packed__)) sdshdr64 {
 #define SDS_HDR(T,s) ((struct sdshdr##T *)((s)-(sizeof(struct sdshdr##T))))
 #define SDS_TYPE_5_LEN(f) ((f)>>SDS_TYPE_BITS)
 
+/*
+_返回SDS 实际保存的字符串的长度
+*/
 static inline size_t sdslen(const sds s) {
     unsigned char flags = s[-1];
+    /*SDS类型*/
     switch(flags&SDS_TYPE_MASK) {
         case SDS_TYPE_5:
             return SDS_TYPE_5_LEN(flags);
@@ -108,6 +115,7 @@ static inline size_t sdslen(const sds s) {
     return 0;
 }
 
+/*_返回SDS可用的空间的长度*/
 static inline size_t sdsavail(const sds s) {
     unsigned char flags = s[-1];
     switch(flags&SDS_TYPE_MASK) {
